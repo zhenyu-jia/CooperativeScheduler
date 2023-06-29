@@ -25,7 +25,8 @@
   *     @arg RCC_HSE_Bypass: HSE oscillator bypassed with external clock
   * @param  pllmul: PLL倍频因子，可以是2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
   *                 72M 是 ST 官方推荐的稳定运行时钟，如果想超频，增大倍频因子即可，
-  *                 最高为 8M*16=128M。.
+  *                 最高为 8M*16=128M。
+  *                 推荐使用STM32官方的宏：RCC_PLLMul_2, ..., RCC_PLLMul_16
   * @retval None
   */
 void HSE_SetSysClock(uint32_t RCC_HSE, uint32_t pllmul)
@@ -100,6 +101,14 @@ void HSE_SetSysClock(uint32_t RCC_HSE, uint32_t pllmul)
     }
 }
 
+/**
+  * @brief  系统时钟设置（使用内部时钟）
+  * @note   None
+  * @param  pllmul: PLL倍频因子，可以是2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+  *                 使用内部高速晶振时是将HSI/2然后在倍频，所以最高是8M/2*16 = 64M
+  *                 推荐使用STM32官方的宏：RCC_PLLMul_2……RCC_PLLMul_16
+  * @retval None
+  */
 void HSI_SetSysClock(uint32_t pllmul)
 {
     __IO uint32_t HSIStartUpStatus = 0;
@@ -171,3 +180,35 @@ void HSI_SetSysClock(uint32_t pllmul)
         }
     }
 }
+
+/*
+* 初始化 MCO 引脚 PA8
+* 在 F103 系列中 MCO 引脚只有一个，即 PA8，在 F4 系列中，MCO 引脚有两个
+*/
+/**
+  * @brief  对外输出时钟 MCO 引脚配置
+  * @note   None
+  * @param  None
+  * @retval None
+  */
+void MCO_GPIO_Config(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+    
+    // 开启 GPIOA 的时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+    // GPIO 配置
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;           // 选择 GPIO8 引脚
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;     // 设置为复用功能推挽输出
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;   // 设置 IO 的翻转速率为 50M
+
+    // 初始化 GPIOA8
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
+
+// MCO 引脚输出可以是 HSE,HSI,PLLCLK/2,SYSCLK
+// RCC_MCOConfig(RCC_MCO_HSE);
+// RCC_MCOConfig(RCC_MCO_HSI);
+// RCC_MCOConfig(RCC_MCO_PLLCLK_Div2);
+// RCC_MCOConfig(RCC_MCO_SYSCLK);
