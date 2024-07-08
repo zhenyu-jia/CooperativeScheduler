@@ -19,6 +19,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+RCC_ClocksTypeDef get_rcc_clock;    // 获取当前时钟频率
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -31,16 +32,22 @@ static void System_Init(void);
   * @retval None
   */
 int main(void)
-{
+{    
     /* 系统初始化 */
     System_Init();
+    
+    RCC_GetClocksFreq(&get_rcc_clock);
+    logprintf(LOG_DEBUG, "SYSCLK_Frequency  = %d", get_rcc_clock.SYSCLK_Frequency);
+    logprintf(LOG_DEBUG, "HCLK_Frequency    = %d", get_rcc_clock.HCLK_Frequency);
+    logprintf(LOG_DEBUG, "PCLK1_Frequency   = %d", get_rcc_clock.PCLK1_Frequency);
+    logprintf(LOG_DEBUG, "PCLK2_Frequency   = %d", get_rcc_clock.PCLK2_Frequency);
     
     /* 添加任务 */
     SCH_Add_Task(task1, 0, 100);
     SCH_Add_Task(task2, 10, 100);
     SCH_Add_Task(task3, 20, 100);
-    SCH_Add_Task(task4, 30, 100);
-    SCH_Add_Task(task5, 40, 10);
+//    SCH_Add_Task(task4, 30, 100);
+//    SCH_Add_Task(task5, 40, 10);
     
     /* 打开调度器 */
     SCH_Start();
@@ -58,9 +65,19 @@ int main(void)
   */
 static void System_Init(void)
 {
-    SCH_Init_Systick();     // 调度器初始化
-    Led[0].init();          // LED1 初始化
-    Led[1].init();          // LED2 初始化
+    // 时钟设置
+    HSE_SetSysClock(RCC_HSE_ON, RCC_PLLMul_9);
+//    // MCO 引脚初始化
+//    MCO_GPIO_Config();
+//    // MCO 引脚输出配置为 HSE
+//    RCC_MCOConfig(RCC_MCO_HSE);
+    
+    // 调度器初始化
+    SCH_Init_Systick();
+    
+    // LED 初始化
+    Led[0].init();
+    Led[1].init();
 }
 
 #ifdef  USE_FULL_ASSERT

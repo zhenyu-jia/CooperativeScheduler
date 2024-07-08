@@ -20,5 +20,6 @@
 #include "log.h"
 #include "led.h"
 #include "app.h"
+#include "clkconfig.h"
 
 #endif  /* __MAIN_H */
